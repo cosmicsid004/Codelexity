@@ -12,22 +12,43 @@ def main():
     code_input = sys.argv[2]
 
     try: 
-        start_time = time.time()
+        runs = 10
+        total_time = 0.0;
 
-        res = subprocess.run(["python", code_file],
-                              input=code_input + "\n",
-                                capture_output=True, 
-                                text=True,
-                                check=True
-                                )
+        #warm_up runs
+        subprocess.run(
+            [sys.executable, code_file],
+            input=code_input + "\n",
+            text=True,
+            capture_output=True,
+            check=True,
+            timeout=2
+        )
+
+        for i in range(runs):
+            start_time = time.perf_counter()
+
+            subprocess.run(
+                [sys.executable, code_file],
+                input=code_input + "\n",
+                text=True,
+                capture_output=True,
+                check=True, 
+                timeout=2
+            )
+            
+            end_time = time.perf_counter()
+
+            # print(res.stdout.strip())
+            total_time += (end_time - start_time)
+            # print("Execution time: ", end_time - start_time)
         
-        end_time = time.time()
-
-        print(res.stdout.strip())
-        print("Execution time: ", end_time - start_time)
+        print("Average Execution time: ", total_time / runs)
 
     except subprocess.CalledProcessError as e:
         print(f"Command faild with return code {e.returncode}")
+    except subprocess.TimeoutExpired:
+        print("Code session time out")
 
 if __name__ == "__main__":
     main()
